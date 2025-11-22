@@ -242,11 +242,7 @@ class DirectiveExtractor:
                     directives["lua"].append(directive)
                 elif "quic" in directive or "h2" in directive or "h3" in directive:
                     directives["quic_http3"].append(directive)
-                elif (
-                    "51degrees" in directive
-                    or "deviceatlas" in directive
-                    or "wurfl" in directive
-                ):
+                elif "51degrees" in directive or "deviceatlas" in directive or "wurfl" in directive:
                     directives["device_detection"].append(directive)
                 else:
                     directives[current_category].append(directive)
@@ -424,7 +420,7 @@ class ImplementationAnalyzer:
         # Match directives without colon: "directive" value -> global_xxx
         global_pattern_no_colon = r'"([a-zA-Z0-9._-]+)"\s+(?:string|number|boolean).*?->\s*global_'
         # Match directives that are just rule references: | xxx -> global_xxx
-        global_pattern_rule = r'->\s*global_([a-zA-Z0-9_]+)'
+        global_pattern_rule = r"->\s*global_([a-zA-Z0-9_]+)"
 
         found_directives = set()
         found_directives.update(re.findall(global_pattern_colon, content))
@@ -520,9 +516,7 @@ def calculate_coverage(doc_items: list[str], impl_items: list[str]) -> CoverageR
     )
 
 
-def calculate_proxy_coverage(
-    haproxy_keywords: list[str], grammar_content: str
-) -> CoverageResult:
+def calculate_proxy_coverage(haproxy_keywords: list[str], grammar_content: str) -> CoverageResult:
     """Calculate proxy keyword coverage using DSL mapping."""
     impl_patterns: set[str] = set()
 
@@ -537,14 +531,10 @@ def calculate_proxy_coverage(
     block_matches = re.findall(r"([a-zA-Z0-9_]+)_block", grammar_content)
     impl_patterns.update(normalize_keyword(m) for m in block_matches)
 
-    directive_matches = re.findall(
-        r"([a-zA-Z0-9_]+)_(?:directive|rule)", grammar_content
-    )
+    directive_matches = re.findall(r"([a-zA-Z0-9_]+)_(?:directive|rule)", grammar_content)
     impl_patterns.update(normalize_keyword(m) for m in directive_matches)
 
-    direct_keywords = re.findall(
-        r'"(bind|stick|server|timeout|use_backend|acl)"', grammar_content
-    )
+    direct_keywords = re.findall(r'"(bind|stick|server|timeout|use_backend|acl)"', grammar_content)
     impl_patterns.update(normalize_keyword(m) for m in direct_keywords)
 
     covered = []
@@ -565,8 +555,7 @@ def calculate_proxy_coverage(
             if dsl_name is None:
                 deprecated_skipped.append(keyword)
             elif (
-                normalize_keyword(dsl_name) in impl_patterns
-                or keyword_normalized in impl_patterns
+                normalize_keyword(dsl_name) in impl_patterns or keyword_normalized in impl_patterns
             ):
                 covered.append(keyword)
             else:
@@ -576,8 +565,7 @@ def calculate_proxy_coverage(
                 else:
                     missing.append(keyword)
         elif keyword_normalized in impl_patterns or any(
-            keyword_normalized in p or p.startswith(keyword_normalized)
-            for p in impl_patterns
+            keyword_normalized in p or p.startswith(keyword_normalized) for p in impl_patterns
         ):
             covered.append(keyword)
         else:
@@ -794,7 +782,9 @@ def generate_markdown_report(data: ReportData) -> str:
     lines.append("")
     lines.append("### Well-Implemented Features")
     lines.append("")
-    lines.append("1. **Core Global Directives** - Strong coverage of essential global configuration")
+    lines.append(
+        "1. **Core Global Directives** - Strong coverage of essential global configuration"
+    )
     lines.append("   - Process management (daemon, user, group, chroot, pidfile)")
     lines.append("   - Connection limits (maxconn, maxsslconn, maxconnrate, maxsessrate)")
     lines.append("   - SSL/TLS configuration (ssl-default-bind-*, ssl-default-server-*)")
@@ -844,7 +834,9 @@ def generate_markdown_report(data: ReportData) -> str:
     lines.append("### Appendix A: Implemented Global Directives")
     lines.append("")
     lines.append("<details>")
-    lines.append(f"<summary>All Implemented Global Directives ({len(data.impl_data['global'])})</summary>")
+    lines.append(
+        f"<summary>All Implemented Global Directives ({len(data.impl_data['global'])})</summary>"
+    )
     lines.append("")
     lines.append("```")
     for directive in data.impl_data["global"]:
@@ -857,7 +849,9 @@ def generate_markdown_report(data: ReportData) -> str:
     lines.append("### Appendix B: Implemented Server Options")
     lines.append("")
     lines.append("<details>")
-    lines.append(f"<summary>All Implemented Server Options ({len(data.impl_data['server'])})</summary>")
+    lines.append(
+        f"<summary>All Implemented Server Options ({len(data.impl_data['server'])})</summary>"
+    )
     lines.append("")
     lines.append("```")
     for option in data.impl_data["server"]:
@@ -959,7 +953,9 @@ def print_coverage_summary(data: ReportData) -> None:
     t = data.test_data
     print(f"  Test Files:         {t['total_files']:3d} files")
     cats = t["categories"]
-    print(f"                      global:{cats['global']} bind:{cats['bind']} server:{cats['server']} actions:{cats['actions']}")
+    print(
+        f"                      global:{cats['global']} bind:{cats['bind']} server:{cats['server']} actions:{cats['actions']}"
+    )
     print("")
 
     # Overall status
@@ -992,7 +988,9 @@ def print_coverage_summary(data: ReportData) -> None:
                 print(f"      - {keyword}")
         if dep_global:
             print("")
-            print(f"  Deprecated in HAProxy 3.3 ({len(dep_global)}) - intentionally not implemented:")
+            print(
+                f"  Deprecated in HAProxy 3.3 ({len(dep_global)}) - intentionally not implemented:"
+            )
             for directive in dep_global:
                 print(f"      - {directive}")
     else:
@@ -1002,9 +1000,7 @@ def print_coverage_summary(data: ReportData) -> None:
     print("")
 
 
-def collect_report_data(
-    doc_path: Path, project_path: Path, verbose: bool = True
-) -> ReportData:
+def collect_report_data(doc_path: Path, project_path: Path, verbose: bool = True) -> ReportData:
     """Collect all data needed for the report."""
     log = print if verbose else lambda *args, **kwargs: None
 

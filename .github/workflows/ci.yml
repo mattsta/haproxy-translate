@@ -83,7 +83,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          uv run pytest tests -n auto --cov=src --cov-report=xml --cov-report=term-missing
+          uv run pytest tests -n 20 --cov=src --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

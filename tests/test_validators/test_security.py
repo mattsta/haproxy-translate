@@ -476,7 +476,9 @@ class TestStatsAdminValidation:
         assert len(admin_issues) >= 1
         # Should have a critical issue for admin without auth
         critical_issues = [
-            i for i in report.issues if i.level == SecurityLevel.CRITICAL and "admin" in i.message.lower()
+            i
+            for i in report.issues
+            if i.level == SecurityLevel.CRITICAL and "admin" in i.message.lower()
         ]
         assert len(critical_issues) >= 1
 
