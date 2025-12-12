@@ -2,7 +2,6 @@
 // Basic round-robin load balancing across multiple web servers
 
 config simple_loadbalancer {
-    version: "2.0"
 
     global {
         daemon: true

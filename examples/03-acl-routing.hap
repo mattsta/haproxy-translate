@@ -2,7 +2,6 @@
 // Route requests to different backends based on path and headers
 
 config acl_routing {
-    version: "2.0"
 
     defaults {
         mode: http

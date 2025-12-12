@@ -2,7 +2,6 @@
 // Demonstrates: Lua functions, loops, conditionals, complex routing
 
 config advanced_loadbalancer {
-  version: "2.0"
 
   // Environment-aware variables
   let environment = "production"

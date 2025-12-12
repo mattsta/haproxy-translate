@@ -2,7 +2,6 @@
 // HTTPS frontend with SSL termination, plain HTTP to backends
 
 config ssl_termination {
-    version: "2.0"
 
     let cert_path = env("SSL_CERT_PATH", "/etc/haproxy/certs/site.pem")
 

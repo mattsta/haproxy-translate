@@ -2,7 +2,6 @@
 // Uses conditionals to adapt configuration based on environment
 
 config multi_environment {
-    version: "2.0"
 
     // Environment detection
     let environment = env("ENVIRONMENT", "development")

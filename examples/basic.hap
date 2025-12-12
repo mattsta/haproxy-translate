@@ -2,7 +2,6 @@
 // Demonstrates fundamental features: variables, templates, frontends, backends
 
 config basic_loadbalancer {
-  version: "2.0"
 
   // Variables for configuration
   let backend_port = 8080

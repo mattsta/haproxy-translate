@@ -2,7 +2,6 @@
 // Uses variables, templates, and loops for scalable configuration
 
 config dynamic_scaling {
-    version: "2.0"
 
     // Configuration variables
     let num_servers = env("NUM_SERVERS", "10")
