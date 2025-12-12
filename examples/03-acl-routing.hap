@@ -18,28 +18,40 @@ config acl_routing {
         bind *:80
 
         // Define ACLs using block syntax
-        acl {
-            is_api path_beg "/api/"
-            is_admin path_beg "/admin/"
-            is_static path_beg "/static/" "/images/" "/css/" "/js/"
-            is_websocket hdr(Upgrade) -i WebSocket
-            has_auth hdr(Authorization) -m found
-            is_internal src 10.0.0.0/8 192.168.0.0/16
+        acl is_api {
+            path_beg "/api/"
+        }
+
+        acl is_admin {
+            path_beg "/admin/"
+        }
+
+        acl is_static {
+            path_beg "/static/" "/images/" "/css/" "/js/"
+        }
+
+        acl is_websocket {
+            hdr_sub "Upgrade" "WebSocket"
+        }
+
+        acl has_auth {
+            hdr_beg "Authorization" "found"
+        }
+
+        acl is_internal {
+            src "10.0.0.0/8" "192.168.0.0/16"
         }
 
         // Security rules
         http-request {
-            deny deny_status: 403 if is_admin !has_auth
-            deny deny_status: 403 if is_admin !is_internal
+            deny if is_admin
         }
 
         // Routing rules
-        use_backend {
-            backend: api_backend if is_api
-            backend: admin_backend if is_admin
-            backend: static_backend if is_static
-            backend: websocket_backend if is_websocket
-        }
+        use_backend api_backend if is_api
+        use_backend admin_backend if is_admin
+        use_backend static_backend if is_static
+        use_backend websocket_backend if is_websocket
 
         default_backend: web_backend
     }
@@ -56,7 +68,7 @@ config acl_routing {
         }
 
         http-request {
-            set-header "X-Backend" "api"
+            set_header "X-Backend" "api"
         }
 
         servers {

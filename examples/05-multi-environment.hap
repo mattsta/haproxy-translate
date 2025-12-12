@@ -9,36 +9,70 @@ config multi_environment {
     let is_staging = environment == "staging"
     let is_dev = environment == "development"
 
-    // Environment-specific variables
-    let max_conn = is_prod ? 10000 : (is_staging ? 1000 : 100)
-    let num_servers = is_prod ? 10 : (is_staging ? 3 : 1)
-    let log_level = is_prod ? "info" : "debug"
-
-    global {
-        daemon: is_prod
-        maxconn: max_conn
-        log "/dev/log" local0 ${log_level}
-    }
-
-    defaults {
-        mode: http
-        retries: is_prod ? 3 : 1
-        timeout: {
-            connect: 5s
-            client: is_prod ? 50s : 10s
-            server: is_prod ? 50s : 10s
-            check: is_prod ? 10s : 5s
+    // Production configuration
+    if is_prod {
+        global {
+            daemon: true
+            maxconn: 10000
+            log "/dev/log" local0 info
         }
-        option: ["httplog"]
-    }
 
-    frontend web {
-        bind *:80
-        default_backend: app_servers
+        defaults {
+            mode: http
+            retries: 3
+            timeout: {
+                connect: 5s
+                client: 50s
+                server: 50s
+                check: 10s
+            }
+            option: ["httplog"]
+        }
+    } else if is_staging {
+        global {
+            daemon: true
+            maxconn: 1000
+            log "/dev/log" local0 info
+        }
+
+        defaults {
+            mode: http
+            retries: 2
+            timeout: {
+                connect: 5s
+                client: 30s
+                server: 30s
+                check: 7s
+            }
+            option: ["httplog"]
+        }
+    } else {  // development
+        global {
+            daemon: false
+            maxconn: 100
+            log "/dev/log" local0 debug
+        }
+
+        defaults {
+            mode: http
+            retries: 1
+            timeout: {
+                connect: 5s
+                client: 10s
+                server: 10s
+                check: 5s
+            }
+            option: ["httplog"]
+        }
     }
 
     // Production configuration
     if is_prod {
+        frontend web {
+            bind *:80
+            default_backend: app_servers
+        }
+
         backend app_servers {
             balance: leastconn
             option: ["httpchk", "forwardfor"]
@@ -76,10 +110,12 @@ config multi_environment {
                 }
             }
         }
-    }
+    } else if is_staging {
+        frontend web {
+            bind *:80
+            default_backend: app_servers
+        }
 
-    // Staging configuration
-    if is_staging {
         backend app_servers {
             balance: roundrobin
             option: ["httpchk"]
@@ -104,10 +140,12 @@ config multi_environment {
                 }
             }
         }
-    }
+    } else {  // development
+        frontend web {
+            bind *:80
+            default_backend: app_servers
+        }
 
-    // Development configuration
-    if is_dev {
         backend app_servers {
             balance: roundrobin
 

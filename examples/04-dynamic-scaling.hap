@@ -21,7 +21,7 @@ config dynamic_scaling {
 
     global {
         daemon: true
-        maxconn: max_connections
+        maxconn: ${max_connections}
         log "/dev/log" local0 info
     }
 
@@ -41,7 +41,7 @@ config dynamic_scaling {
     frontend web {
         bind *:80
         mode: http
-        maxconn: max_connections
+        maxconn: ${max_connections}
 
         acl {
             is_api path_beg "/api/"
@@ -70,7 +70,7 @@ config dynamic_scaling {
             for i in [1..${num_servers}] {
                 server "web${i}" {
                     address: "${base_ip}.${i}"
-                    port: backend_port
+                    port: ${backend_port}
                     @server_defaults
                 }
             }
@@ -89,8 +89,8 @@ config dynamic_scaling {
         }
 
         server-template api[1..5] {
-            fqdn: "api-{id}.example.com"
-            port: backend_port
+            address: "api-{id}.example.com"
+            port: ${backend_port}
             @server_defaults
         }
     }

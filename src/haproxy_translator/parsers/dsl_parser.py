@@ -74,7 +74,7 @@ class DSLParser(ConfigParser):
             ir = variable_resolver.resolve()
 
             # Step 5: Unroll loops
-            loop_unroller = LoopUnroller(ir)
+            loop_unroller = LoopUnroller(ir, variables=variable_resolver.variables)
             ir = loop_unroller.unroll()
 
             # Step 6: Expand templates (second pass - for loop-generated servers)

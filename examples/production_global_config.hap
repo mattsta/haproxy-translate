@@ -91,40 +91,27 @@ config production {
         // maxconnrate/maxsslrate protect against connection floods
 
         // ACLs for routing
-        acl {
-            name: "is_api"
-            criterion: "path_beg"
-            flags: []
-            value: ["/api/"]
+        acl is_api {
+            path_beg "/api/"
         }
 
-        acl {
-            name: "is_static"
-            criterion: "path_beg"
-            flags: []
-            value: ["/static/"]
+        acl is_static {
+            path_beg "/static/"
         }
 
-        acl {
-            name: "is_health"
-            criterion: "path"
-            flags: []
-            value: ["/health"]
+        acl is_health {
+            path "/health"
         }
 
         // Health check endpoint
         http-request {
-            action: "return"
-            status: 200
-            content-type: "text/plain"
-            string: "OK"
-            condition: "is_health"
+            return status: 200 content_type: "text/plain" string: "OK" if is_health
         }
 
         // Routing
-        use_backend: "api_backend" condition: "is_api"
-        use_backend: "static_backend" condition: "is_static"
-        default_backend: "web_backend"
+        use_backend api_backend if is_api
+        use_backend static_backend if is_static
+        default_backend: web_backend
     }
 
     backend web_backend {
@@ -134,9 +121,7 @@ config production {
 
         // HTTP response headers
         http-response {
-            action: "set-header"
-            name: "X-Backend"
-            value: "web"
+            set_header name: "X-Backend" value: "web"
         }
 
         servers {
@@ -166,9 +151,7 @@ config production {
         // Protected by global maxsessrate
 
         http-response {
-            action: "set-header"
-            name: "X-Backend"
-            value: "api"
+            set_header name: "X-Backend" value: "api"
         }
 
         servers {
@@ -200,15 +183,11 @@ config production {
         // But still protected by rate limits
 
         http-response {
-            action: "set-header"
-            name: "X-Backend"
-            value: "static"
+            set_header name: "X-Backend" value: "static"
         }
 
         http-response {
-            action: "set-header"
-            name: "Cache-Control"
-            value: "public, max-age=86400"
+            set_header name: "Cache-Control" value: "public, max-age=86400"
         }
 
         servers {

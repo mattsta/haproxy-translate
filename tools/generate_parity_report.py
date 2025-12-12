@@ -908,14 +908,13 @@ def format_status(percentage: float) -> str:
     """Return a status indicator based on percentage."""
     if percentage >= 100:
         return "✓ COMPLETE"
-    elif percentage >= 95:
+    if percentage >= 95:
         return "● EXCELLENT"
-    elif percentage >= 80:
+    if percentage >= 80:
         return "● GOOD"
-    elif percentage >= 60:
+    if percentage >= 60:
         return "○ PARTIAL"
-    else:
-        return "✗ INCOMPLETE"
+    return "✗ INCOMPLETE"
 
 
 def print_coverage_summary(data: ReportData) -> None:

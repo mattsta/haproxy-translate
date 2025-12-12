@@ -51,15 +51,15 @@ config ssl_termination {
 
         // Add forwarding headers
         http-request {
-            set-header "X-Forwarded-Proto" "https"
-            set-header "X-Forwarded-For" "%[src]"
+            set_header name: "X-Forwarded-Proto" value: "https"
+            set_header name: "X-Forwarded-For" value: "%[src]"
         }
 
         // Security headers
         http-response {
-            set-header "Strict-Transport-Security" "max-age=31536000; includeSubDomains"
-            set-header "X-Frame-Options" "DENY"
-            set-header "X-Content-Type-Options" "nosniff"
+            set_header name: "Strict-Transport-Security" value: "max-age=31536000; includeSubDomains"
+            set_header name: "X-Frame-Options" value: "DENY"
+            set_header name: "X-Content-Type-Options" value: "nosniff"
         }
 
         default_backend: web_servers

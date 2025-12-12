@@ -2,17 +2,24 @@
 
 import re
 from dataclasses import replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..ir.nodes import Backend, ConfigIR, ForLoop, Server
 from ..utils.errors import ParseError
+
+if TYPE_CHECKING:
+    from ..ir.nodes import Variable
 
 
 class LoopUnroller:
     """Expands for loops in server definitions."""
 
-    def __init__(self, config: ConfigIR):
+    def __init__(self, config: ConfigIR, variables: dict[str, Variable] | None = None):
         self.config = config
+        self.variables: dict[str, Any] = {}
+        if variables:
+            for name, var_node in variables.items():
+                self.variables[name] = var_node.value
 
     def unroll(self) -> ConfigIR:
         """Unroll all for loops in the configuration."""
@@ -80,15 +87,33 @@ class LoopUnroller:
         # Handle range tuple (start, end)
         if isinstance(iterable, tuple) and len(iterable) == 2:
             start, end = iterable
-            if isinstance(start, (int, float)) and isinstance(end, (int, float)):
-                return list(range(int(start), int(end) + 1))  # Inclusive range
+
+            def _resolve_to_int(val: Any) -> int:
+                if isinstance(val, (int, float)):
+                    return int(val)
+                if isinstance(val, str):
+                    # An empty context is passed for the loop variable,
+                    # as it is not yet defined.
+                    resolved = self._substitute_variables(val, {})
+                    try:
+                        return int(resolved)
+                    except ValueError as err:
+                        raise ParseError(
+                            f"Could not resolve '{val}' to an integer for loop range"
+                        ) from err
+
+                raise ParseError(f"Unsupported type '{type(val)}' for loop range")
+
+            start_val = _resolve_to_int(start)
+            end_val = _resolve_to_int(end)
+            return list(range(start_val, end_val + 1))  # Inclusive range
 
         # Handle list literal
         if isinstance(iterable, list):
             return iterable
 
         # Handle other types
-        raise ParseError(f"Unsupported iterable type: {type(iterable)}")
+        raise ParseError(f"Unsupported iterable type: {type(iterable)} from {iterable}")
 
     def _expand_server(self, server: Server, context: dict[str, Any]) -> Server:
         """Expand a server template with variable substitution."""
@@ -113,14 +138,16 @@ class LoopUnroller:
         def replacer(match: re.Match[str]) -> str:
             expr = match.group(1).strip()
 
+            # Combine global and loop-local contexts. Local context has precedence.
+            eval_context = {**self.variables, **context}
+
             # Check if it's a simple variable reference
-            if expr in context:
-                return str(context[expr])
+            if expr in eval_context:
+                return str(eval_context[expr])
 
             # Try to evaluate as an expression
             try:
                 # Create a safe evaluation context with loop variables
-                eval_context = dict(context)
                 # Evaluate the expression
                 result = eval(expr, {"__builtins__": {}}, eval_context)
                 return str(result)

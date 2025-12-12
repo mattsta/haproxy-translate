@@ -469,7 +469,7 @@ frontend_section: "frontend" identifier "{" frontend_property* "}"
                   | "monitor_uri" ":" string               -> frontend_monitor_uri
                   | "monitor-net" string                   -> frontend_monitor_net
                   | "monitor" "fail" if_condition          -> frontend_monitor_fail
-                  | "maxconn" ":" number                   -> frontend_maxconn
+                  | "maxconn" ":" number_or_var            -> frontend_maxconn
                   | "backlog" ":" number                   -> frontend_backlog
                   | "fullconn" ":" number                  -> frontend_fullconn
                   | "max-keep-alive-queue" ":" number     -> frontend_max_keep_alive_queue
@@ -975,7 +975,7 @@ template_spread: "@" identifier
 
 server_template_block: "server-template" identifier range_expr "{" server_property* "}"
 
-range_expr: "[" number ".." number "]"
+range_expr: "[" number_or_var ".." number_or_var "]"
 
 compression_block: "compression" "{" compression_property* "}"
 
@@ -1201,7 +1201,7 @@ string: ESCAPED_STRING | INTERPOLATED_STRING | VAR_REF
 
 INTERPOLATED_STRING: /"[^"]*\$\{[^}]+\}[^"]*"/  // String with ${var}
 
-VAR_REF: /\$\{[a-zA-Z_][a-zA-Z0-9_]*\}/  // Bare ${var} reference
+VAR_REF: /\$\{[^}]+\}/  // Bare ${var} reference
 
 number: INT | FLOAT
 
